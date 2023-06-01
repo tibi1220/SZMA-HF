@@ -8,7 +8,7 @@ build
 # Server files to be ignored
 node_modules
 dist
-static
+server/static
 *.env
 
 # TODO: LabVIEW files to be ignored
