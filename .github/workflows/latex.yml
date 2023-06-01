@@ -1,0 +1,78 @@
+name: Build and Release LaTeX Document
+on: [push]
+jobs:
+  build_latex:
+    runs-on: ubuntu-latest
+    container:
+      image: danteev/texlive:latest
+    permissions: write-all
+    steps:
+      - name: Get Current Date
+        id: get_date
+        run: echo "date=$(date +'%Y-%m-%d--%H-%M-%S')" >> $GITHUB_OUTPUT
+
+      - name: Checkout repo
+        id: checkout_repo
+        uses: actions/checkout@v3
+
+      - name: Compile LaTeX Document
+        id: compile_latex
+        run: |
+          cd tex
+          latexmk -r .latexmkrc presentation.tex
+          latexmk -r .latexmkrc documentation.tex
+          cd ..
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.get_date.outputs.date }}
+          draft: false
+          prerelease: false
+
+      - name: Upload Presentation PDF to Release
+        id: upload_presentation_pdf
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./tex/build/presentation.pdf
+          asset_name: presentation.pdf
+          asset_content_type: application/pdf
+
+      - name: Upload Presentation Logfile to Release
+        id: upload_presentation_log
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./tex/build/presentation.log
+          asset_name: presentation.log
+          asset_content_type: text/log
+          
+      - name: Upload Documentation PDF to Release
+        id: upload_documentation_pdf
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./tex/build/documentation.pdf
+          asset_name: documentation.pdf
+          asset_content_type: application/pdf
+
+      - name: Upload Presentation Logfile to Release
+        id: upload_documentation_log
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./tex/build/documentation.log
+          asset_name: documentation.log
+          asset_content_type: text/log
