@@ -1,0 +1,46 @@
+\documentclass[a4paper, 12pt]{scrbook}
+
+\usepackage[magyar]{babel}
+
+\usepackage[
+  inner=20mm,
+  outer=20mm,
+  top=20mm,
+  bottom=25mm,
+]{geometry}
+
+\setlength\parindent{0em}
+\setlength\parskip{.66em}
+
+\usepackage{float}
+\usepackage{graphicx}
+
+\usepackage[outputdir=build]{minted}
+
+\usepackage{pgf}
+\usepackage{tikz}
+\usetikzlibrary{arrows,automata}
+
+\pagestyle{plain}
+
+\begin{document}
+
+\frontmatter
+
+% \input{documentation/titlepage-1}
+% \clearpage
+% \;
+% \thispagestyle{empty}
+% \clearpage
+\input{documentation/titlepage-2}
+\cleardoublepage
+\tableofcontents
+
+\mainmatter
+
+\input{documentation/chapter/1}
+\input{documentation/chapter/2}
+\input{documentation/chapter/3}
+\input{documentation/chapter/4}
+
+\end{document}

@@ -1,0 +1,14 @@
+# General files to be ignored
+.DS_Store
+
+# Documentation files to be ignored
+build
+*.log
+
+# Server files to be ignored
+node_modules
+dist
+static
+*.env
+
+# TODO: LabVIEW files to be ignored

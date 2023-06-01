@@ -1,0 +1,185 @@
+\chapter{Az adatok elérése}
+
+Mivel az adatok közvetlenül nem lekérdezhetőek aoka napelemes honlapról, ezért
+megoldást kellett keresnem arra, hogy az adatok hogyan jussanak el a LabVIEW
+programhoz. Egy köztes réteget kellett felépítenem a probléma feloldására.
+Mivel a korábbiakban már építettem TypeScript segítségével Rest API-t,
+ezért a választásom erre a technológiára esett.
+
+Az alkalmazáshoz az express npm csomagot választottam, amely egy könnyen
+használható és rugalmas keretrendszert kínál Node.js-alapú webalkalmazások
+fejlesztéséhez. Az express segítségével gyorsan létrehozhatok útvonalakat,
+valamint kezelhetek HTTP kéréseket és válaszokat. Ezen felül a nagy népszerűség
+(jelenleg átlagosan 25 millió letöltés az \texttt{npmjs.com} oldalról) és a
+széles körben elérhető dokumentáció (\texttt{expressjs.com})
+segít abban, hogy könnyedén megtaláljam a szükséges információkat és segítséget,
+ha bármilyen problémába ütköznék. Ráadásul a typescripthez szükséges típus
+definíciók is elérhetőek hozzá.
+
+\section{Általános adatok}
+
+Az alkalmazás skálázhatósága érdekében először létrehoztam a \texttt{`/about`}
+útvonalat amely visszaadja, hogy milyen napokon érhetőek el a termelési adatok,
+valamint azt is megmondja, hogy hány inverter, és inverterenként hány panel
+van telepítve.
+
+Mintaadat:
+
+\begin{minted}{json}
+// about.json
+{
+  "dates": [ "2023-05-24", "2023-05-23", "...", "2023-05-01" ],
+  "count": {
+    "inverter": 8,
+    "panel": 4
+  }
+}
+\end{minted}
+
+Az ehhez tartozó \texttt{`about.d.ts`} deklarációs fájl:
+
+\begin{minted}{typescript}
+// about.d.ts
+type DateString = `${number}-${number}-${number}`;
+type About = {
+  dates: Array<DateString>;
+  count: {
+    inverter: number;
+    panel: number;
+  };
+};
+\end{minted}
+
+\section{Panel adatok}
+
+Ezek után az egyes panelokhoz tartozó adatok lekérdezéséhez tartozó
+\texttt{`/panel/:date`} útvonalat hoztam létre.
+
+Mintaadat:
+
+\begin{minted}{json}
+[
+  3011, // panel 01
+  3047, // panel 02
+  // ..... panel ..
+  2595  // panel 32
+]
+\end{minted}
+
+Az ehhez tartozó \texttt{`panel.d.ts`} deklarációs fájl:
+
+\begin{minted}{typescript}
+type Panel = Array<number>;
+\end{minted}
+
+\section{Részletes adatok}
+
+Legvégül pedig a rendszer negyedórás bontásban elérhető teljesítmény és
+megtermelt energia adataihoz készítettem el a \texttt{`/detailed/:date`}
+útvonalat.
+
+Mintaadat:
+
+\begin{minted}{json}
+{
+  "power": [
+    0,
+    // ...
+    0, 2, 80,
+    // ...
+    43, 2, 0,
+    // ...
+  ],
+  "sum": [
+    0,
+    // ...
+    0, 0.5, 20.5,
+    // ...
+    86135.75, 86136.25, 86136.25,
+    // ...
+  ],
+  "hour": [
+    "00:00",
+    "00:30",
+    // ...
+    "23:30",
+    "23:45"
+  ]
+}
+\end{minted}
+
+Az ehhez tartozó \texttt{`{}detailed.d.ts`} deklarációs fájl:
+
+\begin{minted}{typescript}
+type Detailed = {
+  power: Array<number>;
+  sum: Array<number>;
+  hour: Array<string>;
+};
+\end{minted}
+
+\section{Az útvonalak összefoglalása}
+
+A három elérhető útvonal tehát:
+
+\begin{minted}{typescript}
+// Saját middleware-ek importálása
+import parseDateMW from '../middleware/parseDate';
+import getSinglePanelMW from '../middleware/getSinglePanel';
+import getSingleDetailedMW from '../middleware/getSingleDetailed';
+import getAbout from '../middleware/getAbout';
+import sendDataMW from '../middleware/sendData';
+
+// Szükséges típus importálása
+import type { Express } from 'express';
+
+// Az alkalmazás útvonalainak összefoglalása
+export default function route(app: Express) {
+  app.get(
+    '/detailed/:date',     // útvonal
+    parseDateMW(),         // :date feldolgozása
+    getSingleDetailedMW(), // részletes adatok lekérdezése
+    sendDataMW()           // adat küldése
+  );
+  app.get(
+    '/panel/:date',        // útvonal
+    parseDateMW(),         // :date feldolgozása
+    getSingleDetailedMW(), // panel adatok lekérdezése
+    sendDataMW()           // adat küldése
+  );
+  app.get(
+    '/about',              // útvonal
+    getAboutMW(),          // általános adatok lekérdezése
+    sendDataMW()           // adat küldése
+  );
+}
+\end{minted}
+
+Ezek után még megfelelő parsereket kellett választani, és már készen is
+volt az alkalmazás.
+\begin{minted}{typescript}
+// .env fájl figyelembe vétele
+import 'dotenv/config';
+// npm csomagok
+import express from 'express';
+import cors from 'cors';
+// Saját modulok
+import parse from './parser';
+import route from './route';
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+app.use(cors({ origin: 'http://localhost:3000', credentials: true }));
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+app.use(express.static('static'));
+
+route(app);
+
+app.listen(PORT, () => {
+  console.log(`App is listening on port ${PORT}`);
+});
+\end{minted}
+
+Készen is van a Rest API. Térjünk át a LabVIEW programra.
