@@ -1,16 +1,16 @@
 \chapter{Az adatok elérése}
 
-Mivel az adatok közvetlenül nem lekérdezhetőek aoka napelemes honlapról, ezért
+Mivel az adatok közvetlenül nem lekérdezhetőek a napelemes honlapról, ezért
 megoldást kellett keresnem arra, hogy az adatok hogyan jussanak el a LabVIEW
 programhoz. Egy köztes réteget kellett felépítenem a probléma feloldására.
 Mivel a korábbiakban már építettem TypeScript segítségével Rest API-t,
 ezért a választásom erre a technológiára esett.
 
-Az alkalmazáshoz az express npm csomagot választottam, amely egy könnyen
+Az alkalmazáshoz az express npm csomagot használtam fel, amely egy könnyen
 használható és rugalmas keretrendszert kínál Node.js-alapú webalkalmazások
 fejlesztéséhez. Az express segítségével gyorsan létrehozhatok útvonalakat,
 valamint kezelhetek HTTP kéréseket és válaszokat. Ezen felül a nagy népszerűség
-(jelenleg átlagosan 25 millió letöltés az \texttt{npmjs.com} oldalról) és a
+(jelenleg átlagosan heti 25 millió letöltés az \texttt{npmjs.com} oldalról) és a
 széles körben elérhető dokumentáció (\texttt{expressjs.com})
 segít abban, hogy könnyedén megtaláljam a szükséges információkat és segítséget,
 ha bármilyen problémába ütköznék. Ráadásul a typescripthez szükséges típus
